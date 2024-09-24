@@ -5,6 +5,28 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { signIn } from "@/auth";
+import { AuthError } from "next-auth";
+
+export async function authenticate(
+  prevState: string | undefined,
+  formData: FormData
+) {
+  try {
+    await signIn("credentials", formData);
+  } catch (error) {
+    if (error instanceof AuthError) {
+      switch (error.type) {
+        case "CredentialsSignin":
+          return "Invalid credentials.";
+        default:
+          return "Something went wrong.";
+      }
+    }
+    throw error;
+  }
+}
+
 // type validation, define schema with zod
 const FormSchema = z.object({
   id: z.string(),
@@ -61,6 +83,7 @@ export async function createInvoice(prevState: State, formData: FormData) {
     VALUES (${customerId}, ${amountInCents}, ${status}, ${date})
   `;
   } catch (error) {
+    console.log(error)
     return {
       message: "Database Error: Failed to Create Invoice.",
     };
@@ -76,7 +99,7 @@ const UpdateInvoice = FormSchema.omit({ id: true, date: true });
 export async function updateInvoice(
   id: string,
   prevState: State,
-  formData: FormData,
+  formData: FormData
 ) {
   const validatedFields = UpdateInvoice.safeParse({
     customerId: formData.get("customerId"),
@@ -101,6 +124,7 @@ export async function updateInvoice(
     WHERE id = ${id}
   `;
   } catch (error) {
+    console.log(error)
     return { message: "Database Error: Failed to Update Invoice." };
   }
 
@@ -118,6 +142,7 @@ export async function deleteInvoice(id: string) {
     revalidatePath("/dashboard/invoices");
     return { message: "Deleted Invoice." };
   } catch (error) {
+    console.log(error)
     return { message: "Database Error: Failed to Delete Invoice." };
   }
 }
