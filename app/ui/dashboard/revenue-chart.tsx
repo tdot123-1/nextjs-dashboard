@@ -32,12 +32,12 @@ export default async function RevenueChart() {
             style={{ height: `${chartHeight}px` }}
           >
             {yAxisLabels.map((label) => (
-              <p key={label}>{label}</p>
+              <p key={`chart-${label}`}>{label}</p>
             ))}
           </div>
 
           {revenue.map((month) => (
-            <div key={month.month} className="flex flex-col items-center gap-2">
+            <div key={`rev-${month.month}`} className="flex flex-col items-center gap-2">
               <div
                 className="w-full rounded-md bg-blue-300"
                 style={{
